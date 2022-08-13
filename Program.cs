@@ -24,7 +24,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy  =>
                       {
-                          policy.WithOrigins("http://localhost:8080")
+                          policy.WithOrigins("http://ec2-54-246-69-31.eu-west-1.compute.amazonaws.com:8080")
                             .AllowAnyHeader()
                             .AllowAnyMethod();
                       });
