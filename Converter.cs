@@ -28,7 +28,7 @@ namespace SystemTextJsonSamples
             Type typeToConvert,
             JsonSerializerOptions options) =>
                 DateOnly.ParseExact(reader.GetString()!,
-                    "yyyy-mm-dd", CultureInfo.InvariantCulture);
+                    "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
         public override void Write(
             Utf8JsonWriter writer,
