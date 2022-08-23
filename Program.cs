@@ -5,9 +5,27 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using Microsoft.Extensions.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = "server=database-expenses.cjdnjnrorbm5.eu-west-1.rds.amazonaws.com;user=admin;password=fanxio468;database=expenses";
+builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
+{
+    config.Sources.Clear();
+
+    // For dev purposes
+    config.AddIniFile("config.ini", optional: true, reloadOnChange: false);
+
+    config.AddEnvironmentVariables();
+});
+
+var config = new Expenses.Configuration(builder);
+
+var connectionString = @$"server={config.DbHost};
+                          port={config.DbPort};
+                          user={config.DbUser};
+                          password={config.DbPassword};
+                          database={config.DbName}";
 var serverVersion = new MariaDbServerVersion(new Version(10, 6, 8));
 
 builder.Services.AddDbContext<ExpenseDb>(
@@ -24,7 +42,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy  =>
                       {
-                          policy.WithOrigins("http://ec2-54-246-69-31.eu-west-1.compute.amazonaws.com:8080")
+                          policy.WithOrigins(config.AllowedOrigins)
                             .AllowAnyHeader()
                             .AllowAnyMethod();
                       });
