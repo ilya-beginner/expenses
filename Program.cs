@@ -49,7 +49,16 @@ builder.Services.AddCors(options =>
                             .AllowAnyMethod();
                       });
 });
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<ExpenseDb>();
+    context.Database.Migrate();
+}
 
 app.MapPost("/expense", async (Expense expense, ExpenseDb db) =>
 {
