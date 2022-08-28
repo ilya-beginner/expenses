@@ -4,6 +4,7 @@ using Pomelo.EntityFrameworkCore.MySql;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations;
 
 using Microsoft.Extensions.Configuration;
 
@@ -11,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
 {
-    config.Sources.Clear();
+    // config.Sources.Clear();
 
     // For dev purposes
     config.AddIniFile("config.ini", optional: true, reloadOnChange: false);
@@ -35,6 +36,7 @@ builder.Services.AddDbContext<ExpenseDb>(
         .EnableSensitiveDataLogging()
         .EnableDetailedErrors()
 );
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
@@ -54,21 +56,26 @@ app.MapPost("/expense", async (Expense expense, ExpenseDb db) =>
     db.expenses.Add(expense);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/expense/{expense.id}", expense);
+    return Results.Created($"/expense/{expense.Id}", expense);
 }).RequireCors(MyAllowSpecificOrigins);
 
 app.UseCors(MyAllowSpecificOrigins);
 
 app.Run();
 
+[Index(nameof(Date), nameof(Tag))]
 class Expense
 {
-    public int id { get; set; }
+    public int Id { get; set; }
+
     [JsonConverter(typeof(SystemTextJsonSamples.DateOnlyJsonConverter))]
-    public DateOnly date { get; set; }
-    public float sum { get; set; }
-    public string? tag { get; set; }
-    public string? notes { get; set; }
+    public DateOnly Date { get; set; }
+
+    public decimal Sum { get; set; }
+
+    public string? Tag { get; set; }
+
+    public string? Notes { get; set; }
 }
 
 class ExpenseDb : DbContext
