@@ -60,12 +60,12 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
 }
 
-app.MapPost("/expense", async (Expense expense, ExpenseDb db) =>
+app.MapPost("/expenses", async (Expense expense, ExpenseDb db) =>
 {
     db.expenses.Add(expense);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/expense/{expense.Id}", expense);
+    return Results.Created($"/expenses/{expense.Id}", expense);
 }).RequireCors(MyAllowSpecificOrigins);
 
 app.UseCors(MyAllowSpecificOrigins);
