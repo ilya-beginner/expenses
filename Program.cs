@@ -68,6 +68,38 @@ app.MapPost("/expenses", async (Expense expense, ExpenseDb db) =>
     return Results.Created($"/expenses/{expense.Id}", expense);
 }).RequireCors(MyAllowSpecificOrigins);
 
+app.MapGet("/expenses", async (DateOnly from, DateOnly to, ExpenseDb db) =>
+    await db.expenses.Where(expense => expense.Date >= from && expense.Date <= to).ToListAsync()
+).RequireCors(MyAllowSpecificOrigins);
+
+app.MapMethods("/expenses/{id}", new[] { "PATCH" }, async (int id, ExpenseDTO inputExpense, ExpenseDb db) =>
+{
+    var expense = await db.expenses.FindAsync(id);
+
+    if (expense is null) return Results.NotFound();
+
+    expense.Date = inputExpense.Date ?? expense.Date;
+    expense.Sum = inputExpense.Sum ?? expense.Sum;
+    expense.Tag = inputExpense.Tag ?? expense.Tag;
+    expense.Notes = inputExpense.Notes ?? expense.Notes;
+
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+});
+
+app.MapDelete("/expenses/{id}", async (int id, ExpenseDb db) =>
+{
+    if (await db.expenses.FindAsync(id) is Expense expense)
+    {
+        db.expenses.Remove(expense);
+        await db.SaveChangesAsync();
+        return Results.Ok(expense);
+    }
+
+    return Results.NotFound();
+});
+
 app.UseCors(MyAllowSpecificOrigins);
 
 app.Run();
@@ -85,6 +117,25 @@ class Expense
     public string? Tag { get; set; }
 
     public string? Notes { get; set; }
+}
+
+class ExpenseDTO
+{
+    public int Id { get; set; }
+
+    [JsonConverter(typeof(SystemTextJsonSamples.DateOnlyJsonConverter))]
+    public DateOnly? Date { get; set; }
+
+    public decimal? Sum { get; set; }
+
+    public string? Tag { get; set; }
+
+    public string? Notes { get; set; }
+
+    public ExpenseDTO() { }
+
+    public ExpenseDTO(Expense expense) =>
+    (Id, Date, Sum, Tag, Notes) = (expense.Id, expense.Date, expense.Sum, expense.Tag, expense.Notes);
 }
 
 class ExpenseDb : DbContext
