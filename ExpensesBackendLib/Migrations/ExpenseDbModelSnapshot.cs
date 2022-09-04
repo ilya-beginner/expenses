@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace expenses.Migrations
+namespace Expenses.Migrations
 {
-    [DbContext(typeof(ExpenseDb))]
+    [DbContext(typeof(ExpensesDb))]
     partial class ExpenseDbModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -40,7 +40,7 @@ namespace expenses.Migrations
 
                     b.HasIndex("Date", "Tag");
 
-                    b.ToTable("expenses", (string)null);
+                    b.ToTable("Expenses", (string)null);
                 });
 #pragma warning restore 612, 618
         }

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace expenses.Migrations
+namespace Expenses.Migrations
 {
     public partial class InitialCreate : Migration
     {
@@ -14,7 +14,7 @@ namespace expenses.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "expenses",
+                name: "Expenses",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -28,20 +28,20 @@ namespace expenses.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_expenses", x => x.Id);
+                    table.PrimaryKey("PK_Expenses", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_expenses_Date_Tag",
-                table: "expenses",
+                name: "IX_Expenses_Date_Tag",
+                table: "Expenses",
                 columns: new[] { "Date", "Tag" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "expenses");
+                name: "Expenses");
         }
     }
 }

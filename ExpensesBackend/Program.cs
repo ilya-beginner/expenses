@@ -12,15 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
 {
-    // config.Sources.Clear();
-
-    // For dev purposes
     config.AddIniFile("config.ini", optional: true, reloadOnChange: false);
-
-    config.AddEnvironmentVariables();
 });
 
-var config = new Expenses.Configuration(builder);
+var config = new Expenses.Configuration(builder.Configuration);
 
 var connectionString = @$"server={config.DbHost};
                           port={config.DbPort};
@@ -29,7 +24,7 @@ var connectionString = @$"server={config.DbHost};
                           database={config.DbName}";
 var serverVersion = new MariaDbServerVersion(new Version(10, 6, 8));
 
-builder.Services.AddDbContext<ExpenseDb>(
+builder.Services.AddDbContext<Expenses.ExpensesDb>(
     dbContextOptions => dbContextOptions
         .UseMySql(connectionString, serverVersion)
         .LogTo(Console.WriteLine, LogLevel.Information)
@@ -56,25 +51,25 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
-    var context = services.GetRequiredService<ExpenseDb>();
+    var context = services.GetRequiredService<Expenses.ExpensesDb>();
     context.Database.Migrate();
 }
 
-app.MapPost("/expenses", async (Expense expense, ExpenseDb db) =>
+app.MapPost("/expenses", async (Expenses.Expense expense, Expenses.ExpensesDb db) =>
 {
-    db.expenses.Add(expense);
+    db.Expenses.Add(expense);
     await db.SaveChangesAsync();
 
     return Results.Created($"/expenses/{expense.Id}", expense);
 }).RequireCors(MyAllowSpecificOrigins);
 
-app.MapGet("/expenses", async (DateOnly from, DateOnly to, ExpenseDb db) =>
-    await db.expenses.Where(expense => expense.Date >= from && expense.Date <= to).ToListAsync()
+app.MapGet("/expenses", async (DateOnly from, DateOnly to, Expenses.ExpensesDb db) =>
+    await db.Expenses.Where(expense => expense.Date >= from && expense.Date <= to).ToListAsync()
 ).RequireCors(MyAllowSpecificOrigins);
 
-app.MapMethods("/expenses/{id}", new[] { "PATCH" }, async (int id, ExpenseDTO inputExpense, ExpenseDb db) =>
+app.MapMethods("/expenses/{id}", new[] { "PATCH" }, async (int id, Expenses.ExpenseDTO inputExpense, Expenses.ExpensesDb db) =>
 {
-    var expense = await db.expenses.FindAsync(id);
+    var expense = await db.Expenses.FindAsync(id);
 
     if (expense is null) return Results.NotFound();
 
@@ -88,11 +83,11 @@ app.MapMethods("/expenses/{id}", new[] { "PATCH" }, async (int id, ExpenseDTO in
     return Results.NoContent();
 });
 
-app.MapDelete("/expenses/{id}", async (int id, ExpenseDb db) =>
+app.MapDelete("/expenses/{id}", async (int id, Expenses.ExpensesDb db) =>
 {
-    if (await db.expenses.FindAsync(id) is Expense expense)
+    if (await db.Expenses.FindAsync(id) is Expenses.Expense expense)
     {
-        db.expenses.Remove(expense);
+        db.Expenses.Remove(expense);
         await db.SaveChangesAsync();
         return Results.Ok(expense);
     }
@@ -103,45 +98,3 @@ app.MapDelete("/expenses/{id}", async (int id, ExpenseDb db) =>
 app.UseCors(MyAllowSpecificOrigins);
 
 app.Run();
-
-[Index(nameof(Date), nameof(Tag))]
-class Expense
-{
-    public int Id { get; set; }
-
-    [JsonConverter(typeof(SystemTextJsonSamples.DateOnlyJsonConverter))]
-    public DateOnly Date { get; set; }
-
-    public decimal Sum { get; set; }
-
-    public string? Tag { get; set; }
-
-    public string? Notes { get; set; }
-}
-
-class ExpenseDTO
-{
-    public int Id { get; set; }
-
-    [JsonConverter(typeof(SystemTextJsonSamples.DateOnlyJsonConverter))]
-    public DateOnly? Date { get; set; }
-
-    public decimal? Sum { get; set; }
-
-    public string? Tag { get; set; }
-
-    public string? Notes { get; set; }
-
-    public ExpenseDTO() { }
-
-    public ExpenseDTO(Expense expense) =>
-    (Id, Date, Sum, Tag, Notes) = (expense.Id, expense.Date, expense.Sum, expense.Tag, expense.Notes);
-}
-
-class ExpenseDb : DbContext
-{
-    public ExpenseDb(DbContextOptions<ExpenseDb> options)
-        : base(options) { }
-
-    public DbSet<Expense> expenses => Set<Expense>();
-}

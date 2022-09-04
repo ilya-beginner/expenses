@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace expenses.Migrations
+namespace Expenses.Migrations
 {
-    [DbContext(typeof(ExpenseDb))]
+    [DbContext(typeof(ExpensesDb))]
     [Migration("20220827112534_InitialCreate")]
     partial class InitialCreate
     {
@@ -42,7 +42,7 @@ namespace expenses.Migrations
 
                     b.HasIndex("Date", "Tag");
 
-                    b.ToTable("expenses");
+                    b.ToTable("Expenses");
                 });
 #pragma warning restore 612, 618
         }
