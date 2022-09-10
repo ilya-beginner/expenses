@@ -10,16 +10,16 @@ public class Configuration
     public string DbPassword;
     public string DbName;
 
-    public string[] AllowedOrigins;
+    public string[] CorsAllowedOrigins;
 
     public Configuration(IConfiguration config)
     {
-        DbHost = config["Expenses:Database:DbHost"];
-        DbPort = ushort.Parse(config["Expenses:Database:DbPort"]);
-        DbUser = config["Expenses:Database:DbUser"];
-        DbPassword = config["Expenses:Database:DbPassword"];
-        DbName = config["Expenses:Database:DbName"];
+        DbHost = config["Db:Host"];
+        DbPort = ushort.Parse(config["Db:Port"]);
+        DbUser = config["Db:User"];
+        DbPassword = config["Db:Password"];
+        DbName = config["Db:Name"];
 
-        AllowedOrigins = config["Expenses:Cors:AllowedOrigins"].Split(',');
+        CorsAllowedOrigins = config["Cors:AllowedOrigins"].Split(',');
     }
 }

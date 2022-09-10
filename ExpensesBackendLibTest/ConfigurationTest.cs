@@ -10,12 +10,12 @@ public class ConfigurationTest
     public void SuccessTest()
     {
         var configMock = new Mock<IConfiguration>();
-        configMock.Setup(config => config["Expenses:Database:DbHost"]).Returns("localhost");
-        configMock.Setup(config => config["Expenses:Database:DbPort"]).Returns("3306");
-        configMock.Setup(config => config["Expenses:Database:DbUser"]).Returns("root");
-        configMock.Setup(config => config["Expenses:Database:DbPassword"]).Returns("password");
-        configMock.Setup(config => config["Expenses:Database:DbName"]).Returns("db");
-        configMock.Setup(config => config["Expenses:Cors:AllowedOrigins"]).Returns("origin1,origin2");
+        configMock.Setup(config => config["Db:Host"]).Returns("localhost");
+        configMock.Setup(config => config["Db:Port"]).Returns("3306");
+        configMock.Setup(config => config["Db:User"]).Returns("root");
+        configMock.Setup(config => config["Db:Password"]).Returns("password");
+        configMock.Setup(config => config["Db:Name"]).Returns("db");
+        configMock.Setup(config => config["Cors:AllowedOrigins"]).Returns("origin1,origin2");
 
         var resultConfig = new Expenses.Configuration(configMock.Object);
 
@@ -24,6 +24,6 @@ public class ConfigurationTest
         Assert.Equal("root", resultConfig.DbUser);
         Assert.Equal("password", resultConfig.DbPassword);
         Assert.Equal("db", resultConfig.DbName);
-        Assert.Equal(new string[] { "origin1", "origin2" }, resultConfig.AllowedOrigins);
+        Assert.Equal(new string[] { "origin1", "origin2" }, resultConfig.CorsAllowedOrigins);
     }
 }
