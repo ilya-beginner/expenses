@@ -13,7 +13,27 @@ public class Expense
 
     public decimal Sum { get; set; }
 
+    public Currency Currency { get; set; }
+
     public string? Tag { get; set; }
 
     public string? Notes { get; set; }
+
+    public Expense() { }
+
+    public Expense(ExpenseApi expense)
+    {
+        Expenses.Currency currency;
+        if (!Expenses.Currency.TryParse(expense.Currency, out currency))
+        {
+            throw new System.ArgumentException("Invalid currency");
+        }
+
+        Id = expense.Id;
+        Date = expense.Date;
+        Sum = expense.Sum;
+        Currency = currency;
+        Tag = expense.Tag;
+        Notes = expense.Notes;
+    }
 }

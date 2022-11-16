@@ -61,19 +61,29 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
 }
 
-app.MapPost("/expenses", async (Expenses.Expense expense, Expenses.ExpensesDb db) =>
+app.MapPost("/expenses", async (Expenses.ExpenseApi expense, Expenses.ExpensesDb db) =>
 {
-    db.Expenses.Add(expense);
+    if (expense.Sum == 0.0m)
+    {
+        throw new System.ArgumentException("Sum cannot be zero");
+    }
+
+    db.Expenses.Add(new Expenses.Expense(expense));
     await db.SaveChangesAsync();
 
     return Results.Created($"/expenses/{expense.Id}", expense);
 }).RequireCors(MyAllowSpecificOrigins);
 
 app.MapGet("/expenses", async (DateOnly from, DateOnly to, Expenses.ExpensesDb db) =>
-    await db.Expenses.Where(expense => expense.Date >= from && expense.Date <= to).ToListAsync()
-).RequireCors(MyAllowSpecificOrigins);
+{
+    var x = (await db.Expenses.
+        Where(expense => expense.Date >= from && expense.Date <= to).
+        OrderBy(expense => expense.Id).
+        ToListAsync()).Select(expense => new Expenses.ExpenseApi(expense)).ToList();
+    return x;
+}).RequireCors(MyAllowSpecificOrigins);
 
-app.MapMethods("/expenses/{id}", new[] { "PATCH" }, async (int id, Expenses.ExpenseDTO inputExpense, Expenses.ExpensesDb db) =>
+app.MapMethods("/expenses/{id}", new[] { "PATCH" }, async (int id, Expenses.ExpensePatch inputExpense, Expenses.ExpensesDb db) =>
 {
     var expense = await db.Expenses.FindAsync(id);
 
@@ -81,6 +91,17 @@ app.MapMethods("/expenses/{id}", new[] { "PATCH" }, async (int id, Expenses.Expe
 
     expense.Date = inputExpense.Date ?? expense.Date;
     expense.Sum = inputExpense.Sum ?? expense.Sum;
+
+    var currency = expense.Currency;
+    if (inputExpense.Currency is not null)
+    {
+        if (!Expenses.Currency.TryParse(inputExpense.Currency, out currency))
+        {
+            throw new System.ArgumentException("Invalid currency");
+        }
+    }
+
+    expense.Currency = currency;
     expense.Tag = inputExpense.Tag ?? expense.Tag;
     expense.Notes = inputExpense.Notes ?? expense.Notes;
 
