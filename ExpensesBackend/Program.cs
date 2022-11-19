@@ -71,14 +71,14 @@ app.MapPost("/expenses", async (Expenses.ExpenseApi expense, Expenses.ExpensesDb
     db.Expenses.Add(new Expenses.Expense(expense));
     await db.SaveChangesAsync();
 
-    return Results.Created($"/expenses/{expense.Id}", expense);
+    return Results.Created($"/expenses/{expense.Id}", expense); // bug: returns id = 0
 }).RequireCors(MyAllowSpecificOrigins);
 
 app.MapGet("/expenses", async (DateOnly from, DateOnly to, Expenses.ExpensesDb db) =>
 {
     var x = (await db.Expenses.
         Where(expense => expense.Date >= from && expense.Date <= to).
-        OrderBy(expense => expense.Id).
+        OrderByDescending(expense => expense.Date).ThenByDescending(expense => expense.Id).
         ToListAsync()).Select(expense => new Expenses.ExpenseApi(expense)).ToList();
     return x;
 }).RequireCors(MyAllowSpecificOrigins);
