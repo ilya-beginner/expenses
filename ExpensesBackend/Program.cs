@@ -101,6 +101,11 @@ app.MapMethods("/expenses/{id}", new[] { "PATCH" }, async (int id, Expenses.Expe
     expense.Date = inputExpense.Date ?? expense.Date;
     expense.Sum = inputExpense.Sum ?? expense.Sum;
 
+    if (expense.Sum == 0.0m)
+    {
+        throw new System.ArgumentException("Sum cannot be zero");
+    }
+
     var currency = expense.Currency;
     if (inputExpense.Currency is not null)
     {
