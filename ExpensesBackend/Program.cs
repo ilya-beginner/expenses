@@ -61,17 +61,18 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
 }
 
-app.MapPost("/expenses", async (Expenses.ExpenseApi expense, Expenses.ExpensesDb db) =>
+app.MapPost("/expenses", async (Expenses.ExpenseApi expenseApi, Expenses.ExpensesDb db) =>
 {
-    if (expense.Sum == 0.0m)
+    if (expenseApi.Sum == 0.0m)
     {
         throw new System.ArgumentException("Sum cannot be zero");
     }
 
-    db.Expenses.Add(new Expenses.Expense(expense));
+    var expense = new Expenses.Expense(expenseApi);
+    db.Expenses.Add(expense);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/expenses/{expense.Id}", expense); // bug: returns id = 0
+    return Results.Created($"/expenses/{expense.Id}", expense);
 }).RequireCors(MyAllowSpecificOrigins);
 
 app.MapGet("/expenses/{id}", async (int id, Expenses.ExpensesDb db) =>
